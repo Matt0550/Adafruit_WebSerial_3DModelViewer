@@ -35,6 +35,7 @@ const angleType = document.getElementById('angle_type');
 const lightSS = document.getElementById('light');
 const darkSS = document.getElementById('dark');
 const darkMode = document.getElementById('darkmode');
+const consoleCheckbox = document.getElementById('console');
 const canvas = document.querySelector('#canvas');
 const calContainer = document.getElementById('calibration');
 const logContainer = document.getElementById("log-container");
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   baudRate.addEventListener('change', changeBaudRate);
   angleType.addEventListener('change', changeAngleType);
   darkMode.addEventListener('click', clickDarkMode);
+  consoleCheckbox.addEventListener('click', clickConsole);
 
   if ('serial' in navigator) {
     const notSupported = document.getElementById('notSupported');
@@ -156,23 +158,25 @@ async function readLoop() {
 
 function logData(line) {
   // Update the Log
-  if (showTimestamp.checked) {
-    let d = new Date();
-    let timestamp = d.getHours() + ":" + `${d.getMinutes()}`.padStart(2, 0) + ":" +
-        `${d.getSeconds()}`.padStart(2, 0) + "." + `${d.getMilliseconds()}`.padStart(3, 0);
-    log.innerHTML += '<span class="timestamp">' + timestamp + ' -> </span>';
-    d = null;
-  }
-  log.innerHTML += line+ "<br>";
+  if (!consoleCheckbox.checked) {
+    if (showTimestamp.checked) {
+      let d = new Date();
+      let timestamp = d.getHours() + ":" + `${d.getMinutes()}`.padStart(2, 0) + ":" +
+          `${d.getSeconds()}`.padStart(2, 0) + "." + `${d.getMilliseconds()}`.padStart(3, 0);
+      log.innerHTML += '<span class="timestamp">' + timestamp + ' -> </span>';
+      d = null;
+    }
+    log.innerHTML += line+ "<br>";
 
-  // Remove old log content
-  if (log.textContent.split("\n").length > maxLogLength + 1) {
-    let logLines = log.innerHTML.replace(/(\n)/gm, "").split("<br>");
-    log.innerHTML = logLines.splice(-maxLogLength).join("<br>\n");
-  }
+    // Remove old log content
+    if (log.textContent.split("\n").length > maxLogLength + 1) {
+      let logLines = log.innerHTML.replace(/(\n)/gm, "").split("<br>");
+      log.innerHTML = logLines.splice(-maxLogLength).join("<br>\n");
+    }
 
-  if (autoscroll.checked) {
-    log.scrollTop = log.scrollHeight
+    if (autoscroll.checked) {
+      log.scrollTop = log.scrollHeight
+    }
   }
 }
 
@@ -275,6 +279,17 @@ async function clickDarkMode() {
   saveSetting('darkmode', darkMode.checked);
 }
 
+async function clickConsole() {
+  // Hide the log if the console is enabled
+  if (consoleCheckbox.checked) {
+    logContainer.style.display = 'none';
+  } else {
+    logContainer.style.display = 'block';
+  }
+  saveSetting('console', consoleCheckbox.checked);
+
+}
+
 /**
  * @name clickClear
  * Click handler for the clear button.
@@ -351,6 +366,7 @@ function loadAllSettings() {
   baudRate.value = loadSetting('baudrate', 9600);
   angleType.value = loadSetting('angletype', 'quaternion');
   darkMode.checked = loadSetting('darkmode', false);
+  console.checked = loadSetting('console', false);
 }
 
 function loadSetting(setting, defaultValue) {
